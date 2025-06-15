@@ -1,0 +1,23 @@
+LLM Usage and Considerations
+
+This project does not currently utilize any Large Language Models (LLMs) in its core functionality. The project is focused on data analysis and visualization of cryptocurrency funding rates.
+
+Future Considerations:
+1. Potential for using LLMs to:
+   - Generate natural language summaries of funding rate patterns
+   - Provide trading strategy recommendations based on historical patterns
+   - Analyze market sentiment from funding rate movements
+
+2. Data Privacy:
+   - All data processing is done locally
+   - No data is sent to external LLM services
+   - Raw funding rate data is stored in CSV format
+
+3. Performance:
+   - Current implementation focuses on efficient data processing
+   - No LLM-related latency concerns
+   - Direct data analysis without intermediate language model processing
+
+4. Dependencies:
+   - No LLM-related dependencies in requirements.txt
+   - Standard data science and visualization libraries only 
