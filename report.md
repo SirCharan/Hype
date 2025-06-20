@@ -26,79 +26,51 @@ Below are the key financial metrics from the backtest, starting with an initial 
 ### Return Metrics
 | Metric                              | Value       |
 |-------------------------------------|-------------|
-| Total Return (%)                    | 8.52% |
-| Annualized Return (%)               | 18.26% |
-| Net Annualized Return After Fees (%)| 18.26% |
-| Average Annualized Yield from Funding Rates (%) | 34.89% |
+| Total Return (%)                    | 14.19% |
+| Annualized Return (%)               | 31.29% |
+| Net Annualized Return After Fees (%)| 31.29% |
 
 ### Risk Metrics
 | Metric           | Value       |
 |------------------|-------------|
-| Sharpe Ratio     | 3.36 |
-| Maximum Drawdown (%) | -3.08% |
-| Volatility (%)   | 4.84% |
-| Value at Risk (95%) (%) | -0.45% |
+| Sharpe Ratio     | 5.89 |
+| Maximum Drawdown (%) | -0.65% |
+| Volatility (%)   | 4.97% |
+| Value at Risk (95%) (%) | -0.44% |
 
 ### Trade Performance Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Win Rate (%)           | 25.32% |
-| Profit Factor          | 2.66 |
-| Average Profit per Trade | $682.19 |
-| Average Loss per Trade | $-86.87 |
-| Expectancy             | $107.83 |
-
-### Strategy-Specific Metrics
-| Metric                              | Value       |
-|-------------------------------------|-------------|
-| Funding Rate Capture (%)            | 100.00% |
-| Average Funding Rate (%)            | 0.2305% |
-| Frequency of Positive Funding Rate Periods (%) | 100.00% |
+| Profit Factor          | 11.40 |
+| Average Profit per Trade | $501.68 |
+| Average Loss per Trade | $-25.27 |
+| Expectancy             | $166.91 |
 
 ### Capital Efficiency Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Capital Utilization (%)| 86.87% |
-| Turnover Ratio         | 73.76 |
+| Capital Utilization (%)| 86.83% |
+| Turnover Ratio         | 81.47 |
 | Leverage Used          | 1.00 |
 
 ### Fee Impact Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Impact of Trading Fees (%) | 8.48% |
-| Break-Even Fee Rate (%)| 0.2305% |
+| Impact of Trading Fees (%) | 3.06% |
+| Break-Even Fee Rate (%)| 0.2116% |
 
 ### Trade Statistics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Number of Trades       | 79 |
-| Average Trade Duration (hours) | 50.41 |
-| Maximum Trade Duration (hours) | 451 |
-
-### Risk Management Metrics
-| Metric                 | Value       |
-|------------------------|-------------|
-| Stop-Loss Effectiveness (%) | 16.46% |
-| Recovery Time from Drawdowns (days) | 0 |
+| Number of Trades       | 85 |
+| Average Trade Duration (hours) | 46.44 |
+| Maximum Trade Duration (hours) | 450 |
 
 ### Liquidity and Execution Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
 | Slippage Impact (%)    | 0.01% |
 | Market Impact (%)      | 0.00% |
-
-### Robustness Metrics
-| Metric                 | Value       |
-|------------------------|-------------|
-| Performance Across Market Regimes | {'Bull': 0, 'Bear': 0, 'Sideways': 0} |
-| Correlation with Bitcoin | 0.00 |
-| Sensitivity to Parameter Changes | TBD |
-
-### Backtesting Validation
-| Metric                 | Value       |
-|------------------------|-------------|
-| Out-of-Sample Performance (%) | 0.00 |
-| Walk-Forward Optimization | TBD |
 
 ## Performance Visualizations
 - **Equity Curve**: Tracks capital growth over the backtest period.  
@@ -113,6 +85,6 @@ Even with its low-risk design, potential challenges include:
 - **Funding Rate Shifts**: Real-time monitoring ensures swift adaptation to changing conditions.
 
 ## Conclusion
-The delta-neutral funding rate arbitrage strategy transforms crypto market volatility into a source of consistent, low-risk returns. With an annualized return of **18.26%** and a Sharpe ratio of **3.36**, it's a proven performer ready for investment. We invite you to connect with us to explore scaling this opportunity further.
+The delta-neutral funding rate arbitrage strategy transforms crypto market volatility into a source of consistent, low-risk returns. With an annualized return of **31.29%** and a Sharpe ratio of **5.89**, it's a proven performer ready for investment. We invite you to connect with us to explore scaling this opportunity further.
 
 **Disclaimer**: This report is for informational purposes only and does not constitute investment advice. Past performance does not guarantee future results. Investors should perform their own due diligence.
