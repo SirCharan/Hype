@@ -56,7 +56,7 @@ Below are the key financial metrics from the backtest, starting with an initial 
 ### Fee Impact Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Impact of Trading Fees (%) | 10.51% |
+| Impact of Trading Fees (%) | 3.40% |
 | Break-Even Fee Rate (%)| 0.2851% |
 
 ### Trade Statistics

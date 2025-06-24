@@ -61,6 +61,7 @@ def simulate_delta_neutral(
     stats = {1: 0, 2: 0, 3: 0}  # Exit clauses: 1 - stop-loss, 2 - perp < spot, 3 - fund_rate < thresh
     all_trades = []  # List to store trade details
     allocated_capital = 0.0  # To store the dynamically calculated capital for each trade
+    entry_fee_cost = 0.0  # To store the entry fee for the current trade
     
     # Time tracking variables
     total_time_periods = 0
@@ -89,6 +90,9 @@ def simulate_delta_neutral(
                 running_capital = capital + cum_after
                 allocated_capital = a * running_capital
 
+                # Calculate and store entry fee
+                entry_fee_cost = allocated_capital * (fee_spot_entry + fee_perp_entry)
+
                 # Record entry event
                 entry_details = {
                     'time': entry_time,
@@ -99,7 +103,7 @@ def simulate_delta_neutral(
                     'allocated_capital': allocated_capital,
                     'current_capital': running_capital,
                     'reason': "Entry: Perp > Spot & Funding Rate > Threshold",
-                    'fees': 0,
+                    'fees': entry_fee_cost,
                     'trade_pnl_before_fees': 0,
                     'trade_pnl_after_fees': 0,
                     'cumulative_pnl_after_fees': cum_after
@@ -128,12 +132,13 @@ def simulate_delta_neutral(
                 trade_df = df[(df.index >= entry_time) & (df.index < t)]
                 fund_earned = (trade_df['fund_rate'] * allocated_capital).sum()
 
-                # Calculate total fees for round trip (entry and exit)
-                fee_cost = allocated_capital * (fee_spot_entry + fee_perp_entry + fee_spot_exit + fee_perp_exit)
+                # Calculate exit and total fees
+                exit_fee_cost = allocated_capital * (fee_spot_exit + fee_perp_exit)
+                total_fee_cost = entry_fee_cost + exit_fee_cost
 
                 # Compute yields before and after fees
                 before = fund_earned
-                after = fund_earned - fee_cost
+                after = fund_earned - total_fee_cost
 
                 # Update cumulative yields
                 cum_before += before
@@ -155,7 +160,7 @@ def simulate_delta_neutral(
                     'allocated_capital': allocated_capital,
                     'current_capital': capital + cum_after,
                     'reason': exit_reason_map.get(clause, "Unknown"),
-                    'fees': fee_cost,
+                    'fees': exit_fee_cost,
                     'trade_pnl_before_fees': before,
                     'trade_pnl_after_fees': after,
                     'cumulative_pnl_after_fees': cum_after
