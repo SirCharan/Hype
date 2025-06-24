@@ -34,30 +34,30 @@ Below are the key financial metrics from the backtest, starting with an initial 
 | Metric           | Value       |
 |------------------|-------------|
 | Sharpe Ratio     | nan |
-| Maximum Drawdown (%) | -4.61% |
-| Volatility (%)   | 5.27% |
-| Value at Risk (95%) (%) | -0.51% |
+| Maximum Drawdown (%) | -6.68% |
+| Volatility (%)   | 5.34% |
+| Value at Risk (95%) (%) | -0.53% |
 
 ### Trade Performance Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Profit Factor          | 2.04 |
-| Average Profit per Trade | $854.72 |
-| Average Loss per Trade | $-136.73 |
-| Expectancy             | $103.62 |
+| Profit Factor          | 1.44 |
+| Average Profit per Trade | $882.43 |
+| Average Loss per Trade | $-183.81 |
+| Expectancy             | $58.52 |
 
 ### Capital Efficiency Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Capital Utilization (%)| 86.87% |
-| Turnover Ratio         | 61.31 |
+| Capital Utilization (%)| 86.89% |
+| Turnover Ratio         | 60.46 |
 | Leverage Used          | 1.00 |
 
 ### Fee Impact Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Impact of Trading Fees (%) | 3.40% |
-| Break-Even Fee Rate (%)| 0.2851% |
+| Impact of Trading Fees (%) | 6.29% |
+| Break-Even Fee Rate (%)| 0.2869% |
 
 ### Trade Statistics
 | Metric                 | Value       |

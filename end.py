@@ -13,6 +13,8 @@ def simulate_delta_neutral(
     fee_perp_entry: float = 0.00045,
     fee_spot_exit: float = 0.0004,
     fee_perp_exit: float = 0.00015,
+    fee_spot_exit_funding: float = 0.0007,
+    fee_perp_exit_funding: float = 0.00045,
     fund_thresh: float = 0.00001,
     spot_price_exit_multiplier: float = 1.0,
 ) -> tuple[pd.DataFrame, dict, pd.DataFrame, float]:
@@ -34,6 +36,8 @@ def simulate_delta_neutral(
     - fee_perp_entry (float): Perpetual trading fee for entry. Default is 0.00045 (0.045%).
     - fee_spot_exit (float): Spot trading fee for exit. Default is 0.0004 (0.040%).
     - fee_perp_exit (float): Perpetual trading fee for exit. Default is 0.00015 (0.015%).
+    - fee_spot_exit_funding (float): Spot trading fee for funding rate exit. Default is 0.0007 (0.07%).
+    - fee_perp_exit_funding (float): Perpetual trading fee for funding rate exit. Default is 0.00045 (0.045%).
     - fund_thresh (float): Funding rate threshold for entry and exit. Default is 0.00001.
     - spot_price_exit_multiplier (float): Multiplier for the spot price in the exit condition. Default is 1.0.
 
@@ -132,8 +136,12 @@ def simulate_delta_neutral(
                 trade_df = df[(df.index >= entry_time) & (df.index < t)]
                 fund_earned = (trade_df['fund_rate'] * allocated_capital).sum()
 
-                # Calculate exit and total fees
-                exit_fee_cost = allocated_capital * (fee_spot_exit + fee_perp_exit)
+                # Calculate exit and total fees based on exit reason
+                if clause == 3:  # Exit due to funding rate
+                    exit_fee_cost = allocated_capital * (fee_spot_exit_funding + fee_perp_exit_funding)
+                else:  # Other exits
+                    exit_fee_cost = allocated_capital * (fee_spot_exit + fee_perp_exit)
+                
                 total_fee_cost = entry_fee_cost + exit_fee_cost
 
                 # Compute yields before and after fees
