@@ -6,21 +6,23 @@ import pandas as pd
 import numpy as np
 from typing import List, Dict
 import json
-import requests
+import os
 
-def fetch_spot_price(symbol: str) -> float:
+def fetch_current_prices(info: Info, symbol: str) -> Dict:
     """
-    Fetch spot price from CoinGecko API
+    Fetch current perpetual and spot prices from Hyperliquid
     """
     try:
-        # Convert HYPE to lowercase for CoinGecko API
-        symbol_lower = symbol.lower()
-        url = f"https://api.coingecko.com/api/v3/simple/price?ids={symbol_lower}&vs_currencies=usd"
-        response = requests.get(url)
-        data = response.json()
-        return data[symbol_lower]['usd']
+        meta = info.meta()
+        for coin in meta['universe']:
+            if coin['name'] == symbol:
+                return {
+                    'perp_price': float(coin['markPrice']),
+                    'spot_price': float(coin['oraclePrice'])
+                }
+        return None
     except Exception as e:
-        print(f"Error fetching spot price: {str(e)}")
+        print(f"Error fetching prices: {str(e)}")
         return None
 
 def fetch_funding_chunk(info: Info, symbol: str, start_time: int, end_time: int, max_retries: int = 3) -> List[Dict]:
@@ -44,13 +46,33 @@ def fetch_funding_chunk(info: Info, symbol: str, start_time: int, end_time: int,
                 return []
     return []
 
+def save_incremental_data(df: pd.DataFrame, output_file: str):
+    """
+    Save data incrementally to CSV
+    """
+    if os.path.exists(output_file):
+        # Read existing data
+        existing_df = pd.read_csv(output_file, index_col=0, parse_dates=True)
+        # Combine with new data
+        combined_df = pd.concat([existing_df, df])
+        # Remove duplicates
+        combined_df = combined_df[~combined_df.index.duplicated(keep='last')]
+        # Sort by timestamp
+        combined_df = combined_df.sort_index()
+    else:
+        combined_df = df
+    
+    # Save to CSV
+    combined_df.to_csv(output_file)
+    print(f"Saved {len(df)} new data points to {output_file}")
+
 def fetch_funding_data(symbol: str, start_date: datetime, end_date: datetime, chunk_hours: int = 4) -> pd.DataFrame:
     """
     Fetch funding data in chunks and combine into a single DataFrame
     Using 4-hour chunks to stay within 500 events limit
     """
     info = Info(constants.MAINNET_API_URL, skip_ws=True)
-    all_data = []
+    output_file = 'hype_funding_rates_1min.csv'
     
     # Convert dates to timestamps
     start_ts = int(start_date.timestamp() * 1000)
@@ -69,50 +91,51 @@ def fetch_funding_data(symbol: str, start_date: datetime, end_date: datetime, ch
         print(f"From: {datetime.fromtimestamp(current_start/1000, UTC)}")
         print(f"To:   {datetime.fromtimestamp(chunk_end/1000, UTC)}")
         
+        # Fetch funding data
         chunk_data = fetch_funding_chunk(info, symbol, current_start, chunk_end)
         if chunk_data:
-            all_data.extend(chunk_data)
-            print(f"Received {len(chunk_data)} data points")
+            # Convert to DataFrame
+            df = pd.DataFrame(chunk_data)
+            df['timestamp'] = pd.to_datetime(df['time'], unit='ms', utc=True)
+            df['funding_rate'] = df['fundingRate'].astype(float)
+            df['premium'] = df['premium'].astype(float)
+            
+            # Fetch current prices
+            prices = fetch_current_prices(info, symbol)
+            if prices:
+                df['perp_price'] = prices['perp_price']
+                df['spot_price'] = prices['spot_price']
+                df['price_difference'] = df['perp_price'] - df['spot_price']
+                df['price_difference_pct'] = (df['price_difference'] / df['spot_price']) * 100
+            
+            # Calculate annualized rate
+            df['annualized_rate'] = ((1 + df['funding_rate']) ** 8760 - 1) * 100
+            
+            # Sort by timestamp
+            df = df.sort_values('timestamp')
+            
+            # Resample to 1-minute intervals
+            df_resampled = df.set_index('timestamp').resample('1T').agg({
+                'funding_rate': 'last',
+                'premium': 'last',
+                'annualized_rate': 'last',
+                'perp_price': 'last',
+                'spot_price': 'last',
+                'price_difference': 'last',
+                'price_difference_pct': 'last'
+            }).fillna(method='ffill')
+            
+            # Save incrementally
+            save_incremental_data(df_resampled, output_file)
+            print(f"Processed {len(chunk_data)} data points")
         
         current_start = chunk_end
         time.sleep(1)  # Small delay between chunks to avoid rate limiting
     
-    if not all_data:
-        print("No data received for any chunk")
-        return pd.DataFrame()
-    
-    # Convert to DataFrame
-    df = pd.DataFrame(all_data)
-    df['timestamp'] = pd.to_datetime(df['time'], unit='ms', utc=True)
-    df['funding_rate'] = df['fundingRate'].astype(float)
-    df['premium'] = df['premium'].astype(float)
-    df['perp_price'] = df['markPrice'].astype(float)  # Add perpetual price
-    
-    # Calculate annualized rate
-    df['annualized_rate'] = ((1 + df['funding_rate']) ** 8760 - 1) * 100
-    
-    # Sort by timestamp
-    df = df.sort_values('timestamp')
-    
-    # Fetch spot price
-    spot_price = fetch_spot_price(symbol)
-    if spot_price is not None:
-        df['spot_price'] = spot_price
-        df['price_difference'] = df['perp_price'] - df['spot_price']
-        df['price_difference_pct'] = (df['price_difference'] / df['spot_price']) * 100
-    
-    # Resample to 1-minute intervals
-    df_resampled = df.set_index('timestamp').resample('1T').agg({
-        'funding_rate': 'last',
-        'premium': 'last',
-        'annualized_rate': 'last',
-        'perp_price': 'last',
-        'spot_price': 'last',
-        'price_difference': 'last',
-        'price_difference_pct': 'last'
-    }).fillna(method='ffill')
-    
-    return df_resampled
+    # Read final data
+    if os.path.exists(output_file):
+        return pd.read_csv(output_file, index_col=0, parse_dates=True)
+    return pd.DataFrame()
 
 def main():
     # Set date range
@@ -123,13 +146,8 @@ def main():
     df = fetch_funding_data("HYPE", start_date, end_date)
     
     if df.empty:
-        print("No data to save")
+        print("No data to analyze")
         return
-    
-    # Save to CSV
-    output_file = 'hype_funding_rates_1min.csv'
-    df.to_csv(output_file)
-    print(f"\nData saved to {output_file}")
     
     # Print summary statistics
     print("\nSummary Statistics:")

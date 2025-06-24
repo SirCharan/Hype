@@ -7,10 +7,12 @@ def simulate_delta_neutral(
     perp_prices: pd.Series,
     funding_rates: pd.Series,
     capital: float = 23_000,
-    a: float = 20/23,
+    a: float = 89/100,
     sl_mult: float = 1.1,
-    fee_spot: float = 0.0007,
-    fee_perp: float = 0.00045,
+    fee_spot_entry: float = 0.0007,
+    fee_perp_entry: float = 0.00045,
+    fee_spot_exit: float = 0.0004,
+    fee_perp_exit: float = 0.00015,
     fund_thresh: float = 0.00001,
     spot_price_exit_multiplier: float = 1.0,
 ) -> tuple[pd.DataFrame, dict, pd.DataFrame, float]:
@@ -26,10 +28,12 @@ def simulate_delta_neutral(
     - perp_prices (pd.Series): Time series of perpetual futures prices.
     - funding_rates (pd.Series): Time series of funding rates (positive means position earns funding).
     - capital (float): Total trading capital. Default is 23,000.
-    - a (float): Fraction of capital allocated to the trade. Default is 20/23.
+    - a (float): Fraction of capital allocated to the trade. Default is 89/100.
     - sl_mult (float): Stop-loss multiplier for perpetual price. Default is 1.1.
-    - fee_spot (float): Spot trading fee. Default is 0.0007 (0.07%).
-    - fee_perp (float): Perpetual trading fee. Default is 0.00045 (0.045%).
+    - fee_spot_entry (float): Spot trading fee for entry. Default is 0.0007 (0.07%).
+    - fee_perp_entry (float): Perpetual trading fee for entry. Default is 0.00045 (0.045%).
+    - fee_spot_exit (float): Spot trading fee for exit. Default is 0.0004 (0.040%).
+    - fee_perp_exit (float): Perpetual trading fee for exit. Default is 0.00015 (0.015%).
     - fund_thresh (float): Funding rate threshold for entry and exit. Default is 0.00001.
     - spot_price_exit_multiplier (float): Multiplier for the spot price in the exit condition. Default is 1.0.
 
@@ -84,6 +88,23 @@ def simulate_delta_neutral(
                 # Dynamically calculate the capital for this trade based on running capital
                 running_capital = capital + cum_after
                 allocated_capital = a * running_capital
+
+                # Record entry event
+                entry_details = {
+                    'time': entry_time,
+                    'type': 'entry',
+                    'spot_price': entry_price_spot,
+                    'perp_price': entry_price_perp,
+                    'funding_rate': row['fund_rate'],
+                    'allocated_capital': allocated_capital,
+                    'current_capital': running_capital,
+                    'reason': "Entry: Perp > Spot & Funding Rate > Threshold",
+                    'fees': 0,
+                    'trade_pnl_before_fees': 0,
+                    'trade_pnl_after_fees': 0,
+                    'cumulative_pnl_after_fees': cum_after
+                }
+                all_trades.append(entry_details)
         else:
             active_trading_periods += 1
             # Check exit conditions
@@ -107,8 +128,8 @@ def simulate_delta_neutral(
                 trade_df = df[(df.index >= entry_time) & (df.index < t)]
                 fund_earned = (trade_df['fund_rate'] * allocated_capital).sum()
 
-                # Calculate total fees (assuming fees are paid per trade for both spot and perpetual)
-                fee_cost = allocated_capital * (fee_spot + fee_perp)
+                # Calculate total fees for round trip (entry and exit)
+                fee_cost = allocated_capital * (fee_spot_entry + fee_perp_entry + fee_spot_exit + fee_perp_exit)
 
                 # Compute yields before and after fees
                 before = fund_earned
@@ -124,24 +145,22 @@ def simulate_delta_neutral(
                     3: "Funding rate < Threshold"
                 }
 
-                # Store trade details
-                trade_details = {
-                    'entry_time': entry_time,
-                    'exit_time': exit_time,
-                    'entry_spot_price': entry_price_spot,
-                    'entry_perp_price': entry_price_perp,
-                    'exit_spot_price': row['spot'],
-                    'exit_perp_price': row['perp'],
-                    'duration': exit_time - entry_time,
-                    'reason_for_exit': exit_reason_map.get(clause, "Unknown"),
+                # Record exit event
+                exit_details = {
+                    'time': exit_time,
+                    'type': 'exit',
+                    'spot_price': row['spot'],
+                    'perp_price': row['perp'],
+                    'funding_rate': row['fund_rate'],
+                    'allocated_capital': allocated_capital,
+                    'current_capital': capital + cum_after,
+                    'reason': exit_reason_map.get(clause, "Unknown"),
                     'fees': fee_cost,
-                    'trade_yield_before_fees': before,
-                    'trade_yield_after_fees': after,
-                    'cumulative_yield_before_fees': cum_before,
-                    'cumulative_yield_after_fees': cum_after,
-                    'running_trade_capital': capital + cum_after
+                    'trade_pnl_before_fees': before,
+                    'trade_pnl_after_fees': after,
+                    'cumulative_pnl_after_fees': cum_after
                 }
-                all_trades.append(trade_details)
+                all_trades.append(exit_details)
 
         # Update cumulative yields in the DataFrame for this time step
         df.at[t, 'yield_before_fees'] = cum_before
@@ -160,133 +179,71 @@ if __name__ == "__main__":
     perp_series = df['perp_open']
     fund_rate_series = df['funding_fundingRate']
 
-    # --- Optimization Loop for fund_thresh ---
-    fund_thresholds_to_test = np.linspace(0.000010, 0.000005, 6)
-    optimization_results = []
+    results_df, stats, trades_df, time_utilization_percentage = simulate_delta_neutral(
+        spot_series,
+        perp_series,
+        fund_rate_series,
+        capital=100_000,
+        spot_price_exit_multiplier=0.99,
+        fund_thresh=0
+    )
 
-    print("--- Running Optimization for fund_thresh ---")
-    for thresh in fund_thresholds_to_test:
-        print(f"Testing fund_thresh: {thresh:.6f}")
-        results_df, stats, trades_df, time_utilization_percentage = simulate_delta_neutral(
-            spot_series,
-            perp_series,
-            fund_rate_series,
-            capital=100_000,
-            spot_price_exit_multiplier=0.99,
-            fund_thresh=thresh
-        )
+    if not trades_df.empty:
+        trades_df.to_csv('trades.csv', index=False)
+        print("Trade data saved to trades.csv")
 
-        if not trades_df.empty:
-            total_yield = trades_df['cumulative_yield_after_fees'].iloc[-1]
-            num_trades = len(trades_df)
+        # Create the running trade capital graph
+        exit_trades_df = trades_df[trades_df['type'] == 'exit']
+        plt.figure(figsize=(12, 6))
+        plt.plot(exit_trades_df['time'], exit_trades_df['current_capital'], linewidth=2, color='blue')
+        plt.title('Running Trade Capital Over Time', fontsize=14, fontweight='bold')
+        plt.xlabel('Time (Trade Exit Index)', fontsize=12)
+        plt.ylabel('Running Trade Capital ($)', fontsize=12)
+        plt.grid(True, alpha=0.3)
 
-            # --- APY Calculation ---
-            initial_capital = 100_000
-            num_periods = len(df)
-            total_days = num_periods / 24  # Assuming hourly data
-            apy = 0.0
-            if total_days > 0:
-                total_return = total_yield / initial_capital
-                # Avoid complex numbers if return is less than -100%
-                if (1 + total_return) > 0:
-                    apy = ((1 + total_return) ** (365 / total_days)) - 1
-                else:
-                    apy = -1.0  # Or some other indicator of total loss
+        # Add horizontal line for initial capital
+        plt.axhline(y=100000, color='red', linestyle='--', alpha=0.7, label='Initial Capital ($100,000)')
+        plt.legend()
 
-            optimization_results.append({
-                'fund_thresh': thresh,
-                'total_yield': total_yield,
-                'apy': apy,
-                'num_trades': num_trades,
-                'time_utilization_percentage': time_utilization_percentage
-            })
-        else:
-            optimization_results.append({
-                'fund_thresh': thresh,
-                'total_yield': 0,
-                'apy': 0,
-                'num_trades': 0,
-                'time_utilization_percentage': 0
-            })
+        # Format y-axis to show currency
+        plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'${x:,.0f}'))
 
-    # --- Present Optimization Results ---
-    if optimization_results:
-        results_summary_df = pd.DataFrame(optimization_results)
-        print("\n--- Optimization Results Summary ---")
-        print(results_summary_df.to_string())
+        plt.tight_layout()
+        plt.savefig('running_trade_capital.png', dpi=300, bbox_inches='tight')
+        # plt.show()
+        print("Graph saved as 'running_trade_capital.png'")
 
-        best_result = results_summary_df.loc[results_summary_df['apy'].idxmax()]
-        print("\n--- Best Performing Setting ---")
-        print(best_result)
+        print("\n--- Simulation Summary ---")
+        optimal_thresh = 0
+        print(f"Optimal fund_thresh: {optimal_thresh:.6f}")
+        print(f"Total trades: {len(exit_trades_df)}")
+        total_yield = exit_trades_df['cumulative_pnl_after_fees'].iloc[-1]
+        print(f"Total Yield (after fees): {total_yield:.2f}")
 
-        # --- Rerun simulation with the best parameter and generate outputs ---
-        print("\n--- Rerunning simulation with optimal fund_thresh to generate plots and trade logs ---")
-        optimal_thresh = best_result['fund_thresh']
-        results_df, stats, trades_df, time_utilization_percentage = simulate_delta_neutral(
-            spot_series,
-            perp_series,
-            fund_rate_series,
-            capital=100_000,
-            spot_price_exit_multiplier=0.99,
-            fund_thresh=optimal_thresh
-        )
+        # --- APY Calculation ---
+        # Assumption: Each data point in the CSV represents 1 hour.
+        initial_capital = 100_000
+        num_periods = len(df)
+        total_days = num_periods / 24  # As per the assumption of hourly data
 
-        if not trades_df.empty:
-            trades_df.to_csv('trades.csv', index=False)
-            print("Trade data saved to trades.csv")
+        if total_days > 0:
+            total_return = total_yield / initial_capital
+            # Annualize the return
+            apy = ((1 + total_return) ** (365 / total_days)) - 1
+            print(f"Final APY (assuming hourly data): {apy:.2%}")
+        # --- End APY Calculation ---
 
-            # Create the running trade capital graph
-            plt.figure(figsize=(12, 6))
-            plt.plot(trades_df['exit_time'], trades_df['running_trade_capital'], linewidth=2, color='blue')
-            plt.title('Running Trade Capital Over Time', fontsize=14, fontweight='bold')
-            plt.xlabel('Time (Trade Exit Index)', fontsize=12)
-            plt.ylabel('Running Trade Capital ($)', fontsize=12)
-            plt.grid(True, alpha=0.3)
+        print("\nExit reasons breakdown:")
+        exit_counts = exit_trades_df['reason'].value_counts(normalize=True) * 100
+        for reason, percentage in exit_counts.items():
+            count = stats[
+                next(key for key, value in
+                     {1: "Stop-loss", 2: "Perp price < Spot price", 3: "Funding rate < Threshold"}.items() if
+                     value == reason)]
+            print(f"- {reason}: {count} trades ({percentage:.2f}%)")
 
-            # Add horizontal line for initial capital
-            plt.axhline(y=100000, color='red', linestyle='--', alpha=0.7, label='Initial Capital ($100,000)')
-            plt.legend()
-
-            # Format y-axis to show currency
-            plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'${x:,.0f}'))
-
-            plt.tight_layout()
-            plt.savefig('running_trade_capital.png', dpi=300, bbox_inches='tight')
-            # plt.show()
-            print("Graph saved as 'running_trade_capital.png'")
-
-            print("\n--- Simulation Summary ---")
-            print(f"Optimal fund_thresh: {optimal_thresh:.6f}")
-            print(f"Total trades: {len(trades_df)}")
-            total_yield = trades_df['cumulative_yield_after_fees'].iloc[-1]
-            print(f"Total Yield (after fees): {total_yield:.2f}")
-
-            # --- APY Calculation ---
-            # Assumption: Each data point in the CSV represents 1 hour.
-            initial_capital = 100_000
-            num_periods = len(df)
-            total_days = num_periods / 24  # As per the assumption of hourly data
-
-            if total_days > 0:
-                total_return = total_yield / initial_capital
-                # Annualize the return
-                apy = ((1 + total_return) ** (365 / total_days)) - 1
-                print(f"Final APY (assuming hourly data): {apy:.2%}")
-            # --- End APY Calculation ---
-
-            print("\nExit reasons breakdown:")
-            exit_counts = trades_df['reason_for_exit'].value_counts(normalize=True) * 100
-            for reason, percentage in exit_counts.items():
-                count = stats[
-                    next(key for key, value in
-                         {1: "Stop-loss", 2: "Perp price < Spot price", 3: "Funding rate < Threshold"}.items() if
-                         value == reason)]
-                print(f"- {reason}: {count} trades ({percentage:.2f}%)")
-
-            print(f"\nTime Utilization: {time_utilization_percentage:.2f}% of total time period")
-            active_periods = (time_utilization_percentage / 100) * num_periods
-            print(f"Active Trading Periods: {int(active_periods):,} out of {num_periods:,} total periods")
-        else:
-            print("No trades were made during the simulation.")
+        print(f"\nTime Utilization: {time_utilization_percentage:.2f}% of total time period")
+        active_periods = (time_utilization_percentage / 100) * num_periods
+        print(f"Active Trading Periods: {int(active_periods):,} out of {num_periods:,} total periods")
     else:
-        print("Optimization loop did not produce any results.")
+        print("No trades were made during the simulation.")

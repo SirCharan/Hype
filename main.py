@@ -1,62 +1,64 @@
-import time
-from datetime import datetime, timedelta, UTC
-from hyperliquid.info import Info
-from hyperliquid.utils import constants
+import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Initialize Info with mainnet URL
-info = Info(constants.MAINNET_API_URL, skip_ws=True)
+def analyze_funding_rates():
+    # Read the CSV file
+    df = pd.read_csv('hype_funding_rates_15min.csv', index_col=0, parse_dates=True)
+    
+    if df.empty:
+        print("No data found in the CSV file.")
+        return
 
-# Set time range for past month (May 14 to June 14)
-end_time = int(time.time() * 1000)  # Current time in milliseconds
-start_time = end_time - (30 * 24 * 60 * 60 * 1000)  # 30 days ago
+    # Calculate statistics
+    stats = {
+        'max': df['annualized_rate'].max(),
+        'min': df['annualized_rate'].min(),
+        'mean': df['annualized_rate'].mean(),
+        'median': df['annualized_rate'].median(),
+        'std_dev': df['annualized_rate'].std(),
+        'above_10': (df['annualized_rate'] > 10).sum(),
+        'below_10': (df['annualized_rate'] <= 10).sum(),
+        'total': len(df)
+    }
 
-# Fetch funding history for HYPE
-funding_data = info.funding_history("HYPE", start_time, end_time)
-
-# Print only one entry per hour, formatted
-last_hour = None
-print("\nHYPE Funding Rate History (May 14 - June 14)")
-print("=" * 80)
-print("Timestamp (UTC)           Funding Rate        Premium           Annualized Rate (%)")
-print("-" * 80)
-
-# Prepare data for plotting
-plot_times = []
-plot_annualized = []
-
-for entry in funding_data:
-    # Convert ms timestamp to hour string using timezone-aware datetime
-    dt = datetime.fromtimestamp(entry['time'] / 1000, UTC)
-    hour_str = dt.strftime('%Y-%m-%d %H:00 UTC')
-    if hour_str != last_hour:
-        # Convert funding rate and premium to float before formatting
-        funding_rate = float(entry['fundingRate'])
-        premium = float(entry['premium'])
-        # Calculate annualized rate
-        annualized_rate = (1 + funding_rate) ** 8760 - 1
-        print(f"{hour_str:<25} {funding_rate:<18.8f} {premium:<.8f} {annualized_rate * 100:>18.2f}")
-        plot_times.append(dt)
-        plot_annualized.append(annualized_rate * 100)
-        last_hour = hour_str
-
-# After collecting plot_annualized, calculate statistics
-if plot_annualized:
-    arr = np.array(plot_annualized)
+    # Print statistics
+    print("\nHYPE Funding Rate Analysis (March 24 - June 14, 2025) [15-Minute Intervals]")
+    print("=" * 80)
     print("\nAnnualized Rate Statistics (%):")
-    print(f"Max:     {arr.max():.2f}")
-    print(f"Min:     {arr.min():.2f}")
-    print(f"Mean:    {arr.mean():.2f}")
-    print(f"Median:  {np.median(arr):.2f}")
-    print(f"Std Dev: {arr.std():.2f}")
+    print(f"Maximum Rate:     {stats['max']:.2f}%")
+    print(f"Minimum Rate:     {stats['min']:.2f}%")
+    print(f"Mean Rate:        {stats['mean']:.2f}%")
+    print(f"Median Rate:      {stats['median']:.2f}%")
+    print(f"Standard Dev:     {stats['std_dev']:.2f}%")
+    print("\nTime Distribution:")
+    print(f"Intervals above 10%:  {stats['above_10']} ({stats['above_10']/stats['total']*100:.1f}%)")
+    print(f"Intervals below 10%:  {stats['below_10']} ({stats['below_10']/stats['total']*100:.1f}%)")
+    print(f"Total Intervals:      {stats['total']}")
 
-# Plotting
-plt.figure(figsize=(14, 6))
-plt.plot(plot_times, plot_annualized, label='Annualized Rate (%)')
-plt.xlabel('Time (UTC)')
-plt.ylabel('Annualized Rate (%)')
-plt.title('HYPE Hourly Annualized Funding Rate (May 14 - June 14)')
-plt.legend()
-plt.tight_layout()
-plt.show()
+    # Create the plot with y-axis scale from 0 to 100%
+    plt.figure(figsize=(14, 6))
+    plt.plot(df.index, df['annualized_rate'], label='Annualized Rate (%)')
+    
+    # Add a horizontal line at 10%
+    plt.axhline(y=10, color='r', linestyle='--', alpha=0.5, label='10% Threshold')
+    
+    # Add a horizontal line for Strategy returns excluding fees (20/23 of mean)
+    strategy_return = stats['mean'] * 20 / 23
+    plt.axhline(y=strategy_return, color='orange', linestyle='-.', alpha=0.7, 
+                label=f'Strategy returns excluding fees ({strategy_return:.1f}%)')
+    
+    plt.xlabel('Time (UTC)')
+    plt.ylabel('Annualized Rate (%)')
+    plt.title('HYPE Funding Rate (March 24 - June 14, 2025) [15-Minute Intervals]')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.ylim(0, 100)  # Set y-axis limit from 0 to 100%
+    plt.tight_layout()
+    
+    # Save the plot
+    plt.savefig('funding_rate_analysis_scaled.png')
+    plt.close()
+
+if __name__ == "__main__":
+    analyze_funding_rates()

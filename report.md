@@ -21,50 +21,50 @@ This approach ensures minimal directional risk, steady income from funding rates
 As of June 20, 2025, cryptocurrency markets remain a whirlwind of volatility, with Bitcoin and altcoins experiencing sharp swings driven by macroeconomic shifts and speculative trading. Perpetual futures, a dominant force in crypto derivatives, exhibit funding rates that fluctuate widely—creating fertile ground for arbitrage. This strategy thrives in such turbulence, offering a rare combination of stability and profitability amid uncertainty.
 
 ## Financial Metrics
-Below are the key financial metrics from the backtest, starting with an initial capital of $100,000.00 over a period of 177.9 days:
+Below are the key financial metrics from the backtest, starting with an initial capital of $100,000.00 over a period of 178.6 days:
 
 ### Return Metrics
 | Metric                              | Value       |
 |-------------------------------------|-------------|
-| Total Return (%)                    | 14.19% |
-| Annualized Return (%)               | 31.29% |
-| Net Annualized Return After Fees (%)| 31.29% |
+| Total Return (%)                    | nan% |
+| Annualized Return (%)               | nan% |
+| Net Annualized Return After Fees (%)| nan% |
 
 ### Risk Metrics
 | Metric           | Value       |
 |------------------|-------------|
-| Sharpe Ratio     | 5.89 |
-| Maximum Drawdown (%) | -0.65% |
-| Volatility (%)   | 4.97% |
-| Value at Risk (95%) (%) | -0.44% |
+| Sharpe Ratio     | nan |
+| Maximum Drawdown (%) | -4.61% |
+| Volatility (%)   | 5.27% |
+| Value at Risk (95%) (%) | -0.51% |
 
 ### Trade Performance Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Profit Factor          | 11.40 |
-| Average Profit per Trade | $501.68 |
-| Average Loss per Trade | $-25.27 |
-| Expectancy             | $166.91 |
+| Profit Factor          | 2.04 |
+| Average Profit per Trade | $854.72 |
+| Average Loss per Trade | $-136.73 |
+| Expectancy             | $103.62 |
 
 ### Capital Efficiency Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Capital Utilization (%)| 86.83% |
-| Turnover Ratio         | 81.47 |
+| Capital Utilization (%)| 86.87% |
+| Turnover Ratio         | 61.31 |
 | Leverage Used          | 1.00 |
 
 ### Fee Impact Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Impact of Trading Fees (%) | 3.06% |
-| Break-Even Fee Rate (%)| 0.2116% |
+| Impact of Trading Fees (%) | 10.51% |
+| Break-Even Fee Rate (%)| 0.2851% |
 
 ### Trade Statistics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Number of Trades       | 85 |
-| Average Trade Duration (hours) | 46.44 |
-| Maximum Trade Duration (hours) | 450 |
+| Number of Trades       | 66 |
+| Average Trade Duration (hours) | 62.25 |
+| Maximum Trade Duration (hours) | 784.0 |
 
 ### Liquidity and Execution Metrics
 | Metric                 | Value       |
@@ -85,6 +85,6 @@ Even with its low-risk design, potential challenges include:
 - **Funding Rate Shifts**: Real-time monitoring ensures swift adaptation to changing conditions.
 
 ## Conclusion
-The delta-neutral funding rate arbitrage strategy transforms crypto market volatility into a source of consistent, low-risk returns. With an annualized return of **31.29%** and a Sharpe ratio of **5.89**, it's a proven performer ready for investment. We invite you to connect with us to explore scaling this opportunity further.
+The delta-neutral funding rate arbitrage strategy transforms crypto market volatility into a source of consistent, low-risk returns. With an annualized return of **nan%** and a Sharpe ratio of **nan**, it's a proven performer ready for investment. We invite you to connect with us to explore scaling this opportunity further.
 
 **Disclaimer**: This report is for informational purposes only and does not constitute investment advice. Past performance does not guarantee future results. Investors should perform their own due diligence.
