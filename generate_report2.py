@@ -6,9 +6,9 @@ from scipy.stats import norm
 def generate_report():
     # --- 1. Load the Backtest Data ---
     try:
-        trades_df_raw = pd.read_csv("trades.csv")
+        trades_df_raw = pd.read_csv("trades2.csv")
     except FileNotFoundError:
-        print("Error: trades.csv not found. Please ensure the file is in the correct directory.")
+        print("Error: trades2.csv not found. Please ensure the file is in the correct directory.")
         return
 
     # Separate entry and exit records
@@ -137,7 +137,7 @@ def generate_report():
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'${x:,.0f}'))
     plt.legend()
     plt.tight_layout()
-    plt.savefig('equity_curve.png', dpi=300)
+    plt.savefig('equity_curve2.png', dpi=300)
     plt.close()
 
     # Drawdown Profile
@@ -150,7 +150,7 @@ def generate_report():
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda y, p: f'{y:.1f}%'))
     plt.legend()
     plt.tight_layout()
-    plt.savefig('drawdown.png', dpi=300)
+    plt.savefig('drawdown2.png', dpi=300)
     plt.close()
 
 
@@ -231,9 +231,9 @@ Below are the key financial metrics from the backtest, starting with an initial 
 
 ## Performance Visualizations
 - **Equity Curve**: Tracks capital growth over the backtest period.  
-  ![Equity Curve](equity_curve.png)
+  ![Equity Curve](equity_curve2.png)
 - **Drawdown Profile**: Highlights the strategy's risk profile over time.  
-  ![Drawdown Profile](drawdown.png)
+  ![Drawdown Profile](drawdown2.png)
 
 ## Risk Factors and Mitigations
 Even with its low-risk design, potential challenges include:
@@ -247,10 +247,10 @@ The delta-neutral funding rate arbitrage strategy transforms crypto market volat
 **Disclaimer**: This report is for informational purposes only and does not constitute investment advice. Past performance does not guarantee future results. Investors should perform their own due diligence.
 """
 
-    with open("report.md", "w") as f:
+    with open("report2.md", "w") as f:
         f.write(report)
     
-    print("Report 'report.md' and visualizations 'equity_curve.png' and 'drawdown.png' have been generated.")
+    print("Report 'report2.md' and visualizations 'equity_curve2.png' and 'drawdown2.png' have been generated.")
 
 if __name__ == "__main__":
     generate_report() 

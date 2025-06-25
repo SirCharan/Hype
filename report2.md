@@ -28,36 +28,36 @@ Below are the key financial metrics from the backtest, starting with an initial 
 |-------------------------------------|-------------|
 | Total Return (%)                    | nan% |
 | APY After Fees (%)                  | nan% |
-| APY Before Fees (%)                 | 38.67% |
+| APY Before Fees (%)                 | 38.96% |
 
 ### Risk Metrics
 | Metric           | Value       |
 |------------------|-------------|
 | Sharpe Ratio     | nan |
-| Maximum Drawdown (%) | -6.68% |
-| Volatility (%)   | 5.34% |
-| Value at Risk (95%) (%) | -0.53% |
+| Maximum Drawdown (%) | -5.14% |
+| Volatility (%)   | 5.32% |
+| Value at Risk (95%) (%) | -0.52% |
 
 ### Trade Performance Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Profit Factor          | 1.44 |
-| Average Profit per Trade | $882.43 |
-| Average Loss per Trade | $-183.81 |
-| Expectancy             | $58.52 |
+| Profit Factor          | 1.89 |
+| Average Profit per Trade | $920.91 |
+| Average Loss per Trade | $-146.42 |
+| Expectancy             | $96.15 |
 
 ### Capital Efficiency Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Capital Utilization (%)| 86.89% |
-| Turnover Ratio         | 60.46 |
+| Capital Utilization (%)| 86.87% |
+| Turnover Ratio         | 61.17 |
 | Leverage Used          | 1.00 |
 
 ### Fee Impact Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Impact of Trading Fees (%) | 6.29% |
-| Break-Even Fee Rate (%)| 0.2869% |
+| Impact of Trading Fees (%) | 3.88% |
+| Break-Even Fee Rate (%)| 0.2855% |
 
 ### Trade Statistics
 | Metric                 | Value       |
@@ -74,9 +74,9 @@ Below are the key financial metrics from the backtest, starting with an initial 
 
 ## Performance Visualizations
 - **Equity Curve**: Tracks capital growth over the backtest period.  
-  ![Equity Curve](equity_curve.png)
+  ![Equity Curve](equity_curve2.png)
 - **Drawdown Profile**: Highlights the strategy's risk profile over time.  
-  ![Drawdown Profile](drawdown.png)
+  ![Drawdown Profile](drawdown2.png)
 
 ## Risk Factors and Mitigations
 Even with its low-risk design, potential challenges include:
