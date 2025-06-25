@@ -27,37 +27,36 @@ Below are the key financial metrics from the backtest, starting with an initial 
 | Metric                              | Value       |
 |-------------------------------------|-------------|
 | Total Return (%)                    | nan% |
-| APY After Fees (%)                  | nan% |
-| APY Before Fees (%)                 | 37.86% |
+| APY Before Fees (%)                 | 38.30% |
 
 ### Risk Metrics
 | Metric           | Value       |
 |------------------|-------------|
 | Sharpe Ratio     | nan |
-| Maximum Drawdown (%) | -5.14% |
-| Volatility (%)   | 5.32% |
-| Value at Risk (95%) (%) | -0.52% |
+| Maximum Drawdown (%) | -3.27% |
+| Volatility (%)   | 6.48% |
+| Value at Risk (95%) (%) | -0.50% |
 
 ### Trade Performance Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Profit Factor          | 1.89 |
-| Average Profit per Trade | $920.91 |
-| Average Loss per Trade | $-146.42 |
-| Expectancy             | $96.15 |
+| Profit Factor          | 3.16 |
+| Average Profit per Trade | $717.21 |
+| Average Loss per Trade | $-108.23 |
+| Expectancy             | $154.41 |
 
 ### Capital Efficiency Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Capital Utilization (%)| 86.87% |
-| Turnover Ratio         | 61.17 |
+| Capital Utilization (%)| 86.85% |
+| Turnover Ratio         | 62.25 |
 | Leverage Used          | 1.00 |
 
 ### Fee Impact Metrics
 | Metric                 | Value       |
 |------------------------|-------------|
-| Impact of Trading Fees (%) | 3.88% |
-| Break-Even Fee Rate (%)| 0.2855% |
+| Impact of Trading Fees (%) | 3.27% |
+| Break-Even Fee Rate (%)| 0.2836% |
 
 ### Trade Statistics
 | Metric                 | Value       |

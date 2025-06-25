@@ -35,7 +35,7 @@ Below are the key financial metrics from the backtest, starting with an initial 
 |------------------|-------------|
 | Sharpe Ratio     | nan |
 | Maximum Drawdown (%) | -6.68% |
-| Volatility (%)   | 5.34% |
+| Volatility (%)   | 6.43% |
 | Value at Risk (95%) (%) | -0.53% |
 
 ### Trade Performance Metrics

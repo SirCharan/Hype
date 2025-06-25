@@ -45,72 +45,96 @@ def generate_report():
     days_in_backtest = len(df_full) / 24
 
     # --- 2. Calculate Financial Metrics ---
-    
-    # Return Metrics
-    final_capital = trades_df['running_trade_capital'].iloc[-1] if not trades_df.empty else initial_capital
-    total_return_after_fees = (final_capital - initial_capital) / initial_capital
-    apy_after_fees = ((1 + total_return_after_fees) ** (365 / days_in_backtest) - 1) if days_in_backtest > 0 else 0
+    if not trades_df.empty:
+        # Return Metrics
+        final_capital = trades_df['running_trade_capital'].iloc[-1]
+        total_return_after_fees = (final_capital - initial_capital) / initial_capital
+        apy_after_fees = ((1 + total_return_after_fees) ** (365 / days_in_backtest) - 1) if days_in_backtest > 0 else 0
 
-    total_yield_before_fees = trades_df['trade_yield_before_fees'].sum()
-    total_return_before_fees = total_yield_before_fees / initial_capital
-    apy_before_fees = (1 + total_return_before_fees) ** (365 / days_in_backtest) - 1 if days_in_backtest > 0 else 0
-    
-    funding_earned = trades_df['trade_yield_before_fees']
+        total_yield_before_fees = trades_df['trade_yield_before_fees'].sum()
+        total_return_before_fees = total_yield_before_fees / initial_capital
+        apy_before_fees = (1 + total_return_before_fees) ** (365 / days_in_backtest) - 1 if days_in_backtest > 0 else 0
+        
+        # Risk Metrics
+        risk_free_rate = 0.02
+        
+        # Create a timeseries of capital for daily calculations
+        trades_df['exit_datetime'] = pd.to_datetime(trades_df['exit_time'], unit='h', origin='2024-01-01')
+        start_time = pd.to_datetime(trades_df['entry_time'].min(), unit='h', origin='2024-01-01')
+        
+        capital_over_time = trades_df.set_index('exit_datetime')['running_trade_capital']
+        initial_capital_s = pd.Series([initial_capital], index=[start_time - pd.Timedelta(hours=1)])
+        capital_over_time = pd.concat([initial_capital_s, capital_over_time])
 
-    # Risk Metrics
-    risk_free_rate = 0.02
-    
-    # Create a timeseries of capital for daily calculations
-    trades_df['exit_datetime'] = pd.to_datetime(trades_df['exit_time'], unit='h', origin='2024-01-01')
-    start_time = pd.to_datetime(trades_df['entry_time'].min(), unit='h', origin='2024-01-01')
-    
-    capital_over_time = trades_df.set_index('exit_datetime')['running_trade_capital']
-    initial_capital_s = pd.Series([initial_capital], index=[start_time - pd.Timedelta(hours=1)])
-    capital_over_time = pd.concat([initial_capital_s, capital_over_time])
+        daily_capital = capital_over_time.resample('D').last().ffill()
+        daily_returns = daily_capital.pct_change().dropna()
 
-    daily_capital = capital_over_time.resample('D').last().ffill()
-    daily_returns = daily_capital.pct_change().dropna()
+        volatility = daily_returns.std() * np.sqrt(365)
+        sharpe_ratio = (apy_after_fees - risk_free_rate) / volatility if volatility != 0 else 0
 
-    volatility = daily_returns.std() * np.sqrt(252)
-    sharpe_ratio = (apy_after_fees - risk_free_rate) / volatility if volatility > 0 else 0
+        rolling_max = daily_capital.cummax()
+        daily_drawdown = (daily_capital - rolling_max) / rolling_max
+        max_drawdown = daily_drawdown.min()
 
-    rolling_max = daily_capital.cummax()
-    daily_drawdown = (daily_capital - rolling_max) / rolling_max
-    max_drawdown = daily_drawdown.min()
+        value_at_risk_95 = norm.ppf(0.05, daily_returns.mean(), daily_returns.std())
 
-    value_at_risk_95 = norm.ppf(0.05, daily_returns.mean(), daily_returns.std())
+        # Trade Performance Metrics
+        yield_after_fees = trades_df['trade_yield_after_fees']
+        winning_trades = yield_after_fees[yield_after_fees > 0]
+        losing_trades = yield_after_fees[yield_after_fees <= 0]
+        
+        win_rate = len(winning_trades) / len(trades_df) if len(trades_df) > 0 else 0
+        profit_factor = winning_trades.sum() / abs(losing_trades.sum()) if abs(losing_trades.sum()) > 0 else float('inf')
+        
+        avg_profit = winning_trades.mean() if len(winning_trades) > 0 else 0
+        avg_loss = losing_trades.mean() if len(losing_trades) > 0 else 0
+        expectancy = (avg_profit * win_rate) + (avg_loss * (1 - win_rate))
 
-    # Trade Performance Metrics
-    yield_after_fees = trades_df['trade_yield_after_fees']
-    winning_trades = yield_after_fees[yield_after_fees > 0]
-    losing_trades = yield_after_fees[yield_after_fees <= 0]
-    
-    win_rate = len(winning_trades) / len(trades_df) if len(trades_df) > 0 else 0
-    profit_factor = winning_trades.sum() / abs(losing_trades.sum()) if abs(losing_trades.sum()) > 0 else float('inf')
-    
-    avg_profit = winning_trades.mean() if len(winning_trades) > 0 else 0
-    avg_loss = losing_trades.mean() if len(losing_trades) > 0 else 0
-    expectancy = (avg_profit * win_rate) + (avg_loss * (1 - win_rate))
+        # Strategy-Specific Metrics
+        total_funding_earned = trades_df['trade_yield_before_fees'].sum()
+        total_capital_traded = trades_df['trade_capital'].sum()
+        
+        # Capital Efficiency Metrics
+        capital_utilization = trades_df['trade_capital'].mean() / trades_df['running_trade_capital'].mean()
+        turnover_ratio = total_capital_traded / initial_capital
+        
+        # Fee Impact Metrics
+        total_fees = trades_df['fees'].sum()
+        impact_of_fees = total_fees / initial_capital
+        break_even_fee_rate = total_funding_earned / total_capital_traded if total_capital_traded > 0 else 0
+        
+        # Trade Statistics
+        num_trades = len(trades_df)
+        avg_trade_duration = trades_df['duration'].mean()
+        max_trade_duration = trades_df['duration'].max()
 
-    # Strategy-Specific Metrics
-    total_funding_earned = funding_earned.sum()
-    total_capital_traded = trades_df['trade_capital'].sum()
-    
-    # Capital Efficiency Metrics
-    capital_utilization = trades_df['trade_capital'].mean() / trades_df['running_trade_capital'].mean()
-    turnover_ratio = total_capital_traded / initial_capital
+    else:
+        # Set all metrics to 0 or appropriate defaults if no trades were made
+        final_capital = initial_capital
+        total_return_after_fees = 0
+        apy_after_fees = 0
+        total_yield_before_fees = 0
+        total_return_before_fees = 0
+        apy_before_fees = 0
+        sharpe_ratio = 0
+        max_drawdown = 0
+        volatility = 0
+        value_at_risk_95 = 0
+        profit_factor = 0
+        avg_profit = 0
+        avg_loss = 0
+        expectancy = 0
+        capital_utilization = 0
+        turnover_ratio = 0
+        impact_of_fees = 0
+        break_even_fee_rate = 0
+        num_trades = 0
+        avg_trade_duration = 0
+        max_trade_duration = 0
+        daily_capital = pd.Series([initial_capital], index=[pd.to_datetime('2024-01-01')])
+        daily_drawdown = pd.Series([0], index=[pd.to_datetime('2024-01-01')])
+
     leverage_used = 1.0 # As per instructions
-
-    # Fee Impact Metrics
-    total_fees = trades_df['fees'].sum()
-    impact_of_fees = total_fees / initial_capital
-    break_even_fee_rate = total_funding_earned / total_capital_traded if total_capital_traded > 0 else 0
-    
-    # Trade Statistics
-    num_trades = len(trades_df)
-    avg_trade_duration = trades_df['duration'].mean()
-    max_trade_duration = trades_df['duration'].max()
-
     # Liquidity and Execution Metrics
     slippage_impact = 0.0001 # Placeholder
     market_impact = 0.0 # Placeholder
