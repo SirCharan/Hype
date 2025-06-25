@@ -26,7 +26,7 @@ Below are the key financial metrics from the backtest, starting with an initial 
 ### Return Metrics
 | Metric                              | Value       |
 |-------------------------------------|-------------|
-| Total APY (%)                    | nan% |
+| Total APY (%)                    | 21.59% |
 | APY Before Fees (%)                 | 38.30% |
 
 ### Risk Metrics
