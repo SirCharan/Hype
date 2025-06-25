@@ -21,14 +21,14 @@ This approach ensures minimal directional risk, steady income from funding rates
 As of June 20, 2025, cryptocurrency markets remain a whirlwind of volatility, with Bitcoin and altcoins experiencing sharp swings driven by macroeconomic shifts and speculative trading. Perpetual futures, a dominant force in crypto derivatives, exhibit funding rates that fluctuate widely—creating fertile ground for arbitrage. This strategy thrives in such turbulence, offering a rare combination of stability and profitability amid uncertainty.
 
 ## Financial Metrics
-Below are the key financial metrics from the backtest, starting with an initial capital of $100,000.00 over a period of 178.6 days:
+Below are the key financial metrics from the backtest, starting with an initial capital of $100,000.00 over a period of 183.0 days:
 
 ### Return Metrics
 | Metric                              | Value       |
 |-------------------------------------|-------------|
 | Total Return (%)                    | nan% |
 | APY After Fees (%)                  | nan% |
-| APY Before Fees (%)                 | 38.96% |
+| APY Before Fees (%)                 | 37.86% |
 
 ### Risk Metrics
 | Metric           | Value       |

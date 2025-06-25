@@ -7,8 +7,9 @@ def generate_report():
     # --- 1. Load the Backtest Data ---
     try:
         trades_df_raw = pd.read_csv("trades.csv")
-    except FileNotFoundError:
-        print("Error: trades.csv not found. Please ensure the file is in the correct directory.")
+        df_full = pd.read_csv("data (1).csv") # Load full dataset for date range
+    except FileNotFoundError as e:
+        print(f"Error: {e.filename} not found. Please ensure the file is in the correct directory.")
         return
 
     # Separate entry and exit records
@@ -40,16 +41,15 @@ def generate_report():
     previous_capital = pd.concat([pd.Series([initial_capital]), trades_df['running_trade_capital'][:-1]], ignore_index=True)
     trades_df['trade_capital'] = a * previous_capital
 
-    # Assume times are in hours and calculate total days
-    total_hours = trades_df['exit_time'].max() - trades_df['entry_time'].min()
-    days_in_backtest = total_hours / 24
+    # Assume times are in hours and calculate total days from the full dataset
+    days_in_backtest = len(df_full) / 24
 
     # --- 2. Calculate Financial Metrics ---
     
     # Return Metrics
-    final_capital = trades_df['running_trade_capital'].iloc[-1]
+    final_capital = trades_df['running_trade_capital'].iloc[-1] if not trades_df.empty else initial_capital
     total_return_after_fees = (final_capital - initial_capital) / initial_capital
-    apy_after_fees = (1 + total_return_after_fees) ** (365 / days_in_backtest) - 1
+    apy_after_fees = ((1 + total_return_after_fees) ** (365 / days_in_backtest) - 1) if days_in_backtest > 0 else 0
 
     total_yield_before_fees = trades_df['trade_yield_before_fees'].sum()
     total_return_before_fees = total_yield_before_fees / initial_capital
